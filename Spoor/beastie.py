@@ -19,7 +19,7 @@ class BasePrinter:
     def __init__(self, ip, port, den):
         self.ip = ip
         self.port = port
-        self.nest = den
+        self.den = den
 
     """
     :return status code of pinging target
@@ -32,3 +32,11 @@ class BasePrinter:
             return probe.status_code
         except Exception, e:
             print_msg(e)
+
+
+class LoginError(Exception):
+    def __str__(self):
+        return repr("Printer Login Failed.")
+
+    def __init__(self):
+        Exception.__init__(self)
