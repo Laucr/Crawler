@@ -28,9 +28,9 @@ class BasePrinter:
 
     def ping(self):
         try:
-            probe = requests.get("http//" + self.ip + ":" + str(self.port), verify=False)
+            probe = requests.get("http://" + self.ip + ":" + str(self.port), verify=False)
             if probe.status_code != 200 or probe.status_code != 302:
-                probe = requests.get("http//" + self.ip + ":" + str(80), verify=False)
+                probe = requests.get("http://" + self.ip + ":" + str(80), verify=False)
             if probe.status_code != 200 or probe.status_code != 302:
                 self.alive = False
                 raise PageNotFoundError
