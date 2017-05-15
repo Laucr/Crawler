@@ -15,7 +15,7 @@ class BasePrinter:
     :param den: dir where to save data
     :type den: str
     """
-    def __init__(self, ip, port, den):
+    def __init__(self, ip, port, den="."):
         self.ip = ip
         self.port = port
         self.den = den
@@ -28,14 +28,22 @@ class BasePrinter:
 
     def ping(self):
         try:
-            probe = requests.get("http://" + self.ip + ":" + str(self.port), verify=False)
-            if probe.status_code != 200 or probe.status_code != 302:
-                probe = requests.get("http://" + self.ip + ":" + str(80), verify=False)
-            if probe.status_code != 200 or probe.status_code != 302:
-                self.alive = False
-                raise PageNotFoundError
+            if self.port != 80:
+                req_port = requests.get("http://" + self.ip + ":" + str(self.port), verify=False)
+                if req_port.status_code != 200 and req_port.status_code != 302:
+                    req_80 = requests.get("http://" + self.ip + ":" + str(80), verify=False)
+                    if req_80.status_code != 200 and req_80.status_code != 302:
+                        self.alive = False
+                        raise TargetDownException
+                    else:
+                        self.port = 80
+
             else:
-                self.port = 80
+                req_port = requests.get("http://" + self.ip + ":" + str(self.port), verify=False)
+                if req_port.status_code != 200 and req_port.status_code != 302:
+                    self.alive = False
+                    raise TargetDownException
+
         except Exception, e:
             print_msg(e)
 
@@ -68,6 +76,14 @@ class PageNotFoundError(Exception):
 class VersionError(Exception):
     def __str__(self):
         return repr("Konica version error.")
+
+    def __init__(self):
+        Exception.__init__(self)
+
+
+class TargetDownException(Exception):
+    def __str__(self):
+        return repr("Target is not alive.")
 
     def __init__(self):
         Exception.__init__(self)
