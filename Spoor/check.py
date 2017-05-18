@@ -43,7 +43,7 @@ spoors = {"canon": canon,
           "sharp": sharp,
           "toshiba": toshiba}
 
-spoor_name = "canon"
+spoor_name = "ricoh"
 
 alive_spoor = open(os.path.join("../targets/",  spoor_name + ".alive"), 'w')
 for _item in spoors[spoor_name]:

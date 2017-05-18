@@ -4,6 +4,7 @@
 
 import requests
 from utils import print_msg
+from requests import ConnectionError
 
 
 class BasePrinter:
@@ -26,27 +27,40 @@ class BasePrinter:
     :except http errors
     """
 
-    def ping(self):
+    @staticmethod
+    def req_port(ip_addr, port):
         try:
-            if self.port != 80:
-                req_port = requests.get("http://" + self.ip + ":" + str(self.port), verify=False, timeout=30)
-                if req_port.status_code != 200 and req_port.status_code != 302:
-                    req_80 = requests.get("http://" + self.ip + ":" + str(80), verify=False, timeout=30)
-                    if req_80.status_code != 200 and req_80.status_code != 302:
-                        self.alive = False
-                        raise TargetDownException
-                    else:
-                        self.port = 80
-
+            ret_code = requests.get("http://" + ip_addr + ":" + str(port), verify=False, timeout=30).status_code
+            if ret_code != 200 and ret_code != 302:
+                return False
             else:
-                req_port = requests.get("http://" + self.ip + ":" + str(self.port), verify=False, timeout=30)
-                if req_port.status_code != 200 and req_port.status_code != 302:
-                    self.alive = False
-                    raise TargetDownException
+                return True
+        except ConnectionError:
+            return False
 
-        except Exception, e:
-            self.alive = False
+    @staticmethod
+    def req_default(ip_addr):
+        try:
+            ret_code = requests.get("http://" + ip_addr, verify=False, timeout=30).status_code
+            if ret_code != 200 and ret_code != 302:
+                return False
+            else:
+                return True
+        except ConnectionError, e:
             print_msg(e)
+            return False
+
+    def ping(self):
+        if self.port != 80 and self.port != 443:
+            self.alive = self.req_default(self.ip)
+            if not self.alive:
+                self.alive = self.req_port(self.ip, self.port)
+            else:
+                self.port = 80
+        else:
+            self.alive = self.req_default(self.ip)
+            if self.alive:
+                self.port = 80
 
     @staticmethod
     def test_exist(res):
